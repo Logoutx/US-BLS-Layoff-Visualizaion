@@ -661,12 +661,12 @@
         <div class="panel-header">
           <div class="panel-title">
             <h3>Data Extract</h3>
-            <p id="dataExtractSubtitle">National all-industries monthly claimant values used in the selected year.</p>
+            <p id="dataExtractSubtitle">Full monthly dataset from 1996 through the latest available BLS data.</p>
           </div>
         </div>
         <div class="export-actions">
-          <button id="exportCsvButton" class="export-button" type="button">Export CSV</button>
-          <span id="exportMeta" class="export-meta">Selected-year BLS data</span>
+          <button id="exportCsvButton" class="export-button" type="button">Export Full CSV</button>
+          <span id="exportMeta" class="export-meta">1996-present MLS/JOLTS data with context series</span>
         </div>
       </section>
       <footer class="site-footnote">
@@ -1124,9 +1124,7 @@
       return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
     }
 
-    function selectedYearCsv() {
-      const data = activeData();
-      const metric = metricName(data);
+    function fullDatasetCsv() {
       const rows = [];
       rows.push([
         "year",
@@ -1136,7 +1134,8 @@
         "series_type",
         "category",
         "events",
-        metric,
+        "value",
+        "value_label",
         "unemployment_rate",
         "unemployed_persons",
         "nonfarm_payrolls",
@@ -1144,74 +1143,82 @@
         "sp500_month_end_date"
       ]);
 
-      data.months.forEach((month, index) => {
-        rows.push([
-          state.year,
-          data.source,
-          month.name,
-          index + 1,
-          "national",
-          "All industries",
-          month.events,
-          month.claimants,
-          data.context.unemploymentRate[index],
-          data.context.unemployedPersons[index] == null ? "" : Math.round(data.context.unemployedPersons[index] * 1000),
-          data.context.nonfarmPayrolls[index] == null ? "" : Math.round(data.context.nonfarmPayrolls[index] * 1000),
-          data.context.sp500MonthEnd[index]?.close,
-          data.context.sp500MonthEnd[index]?.date
-        ]);
-      });
+      Object.keys(DATA.years).sort().forEach((year) => {
+        const data = DATA.years[year];
+        const metric = metricName(data);
 
-      data.industries.forEach((industry) => {
-        industry.claimants.forEach((value, index) => {
+        data.months.forEach((month, index) => {
           rows.push([
-            state.year,
+            year,
             data.source,
-            data.months[index]?.name,
+            month.name,
             index + 1,
-            "industry",
-            industry.label,
-            "",
-            value,
-            "",
-            "",
-            "",
-            "",
-            ""
+            "national",
+            "All industries",
+            month.events,
+            month.claimants,
+            metric,
+            data.context.unemploymentRate[index],
+            data.context.unemployedPersons[index] == null ? "" : Math.round(data.context.unemployedPersons[index] * 1000),
+            data.context.nonfarmPayrolls[index] == null ? "" : Math.round(data.context.nonfarmPayrolls[index] * 1000),
+            data.context.sp500MonthEnd[index]?.close,
+            data.context.sp500MonthEnd[index]?.date
           ]);
         });
-      });
 
-      data.states.forEach((stateRow) => {
-        stateRow.claimants.forEach((value, index) => {
-          rows.push([
-            state.year,
-            data.source,
-            data.months[index]?.name,
-            index + 1,
-            "state",
-            `${stateRow.name} (${stateRow.abbr})`,
-            "",
-            value,
-            "",
-            "",
-            "",
-            "",
-            ""
-          ]);
+        data.industries.forEach((industry) => {
+          industry.claimants.forEach((value, index) => {
+            rows.push([
+              year,
+              data.source,
+              data.months[index]?.name,
+              index + 1,
+              "industry",
+              industry.label,
+              "",
+              value,
+              metric,
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]);
+          });
+        });
+
+        data.states.forEach((stateRow) => {
+          stateRow.claimants.forEach((value, index) => {
+            rows.push([
+              year,
+              data.source,
+              data.months[index]?.name,
+              index + 1,
+              "state",
+              `${stateRow.name} (${stateRow.abbr})`,
+              "",
+              value,
+              metric,
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]);
+          });
         });
       });
 
       return rows.map((row) => row.map(csvEscape).join(",")).join("\n");
     }
 
-    function exportSelectedYearCsv() {
-      const csv = selectedYearCsv();
+    function exportFullDatasetCsv() {
+      const csv = fullDatasetCsv();
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `us-bls-layoff-${state.year}.csv`;
+      link.download = "us-bls-layoff-1996-present.csv";
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -1240,8 +1247,8 @@
       document.getElementById("topListSubtitle").textContent = isJoltsYear(data)
         ? "Ranked by layoffs/discharges in industry-month JOLTS aggregates."
         : "Ranked by associated initial claimants in state-month MLS aggregates.";
-      document.getElementById("dataExtractSubtitle").textContent = `National all-industries monthly ${metric.toLowerCase()} values used in the selected year.`;
-      document.getElementById("exportMeta").textContent = `${state.year} ${data.source} monthly CSV, including context series${data.states.length ? " and state values" : ""}.`;
+      document.getElementById("dataExtractSubtitle").textContent = "Full monthly dataset from 1996 through the latest available BLS data.";
+      document.getElementById("exportMeta").textContent = "Exports national, industry, available state, unemployment, payroll, and S&P 500 context data.";
       document.getElementById("claimantsTotal").textContent = compact.format(total);
       document.getElementById("peakRate").textContent = `${peakRate.toFixed(1)}%`;
       document.getElementById("avgUnemployed").textContent = compact.format(avgUnemployed * 1000);
@@ -1300,7 +1307,7 @@
         state.industryIndex = Number(event.target.value);
         render();
       });
-      document.getElementById("exportCsvButton").addEventListener("click", exportSelectedYearCsv);
+      document.getElementById("exportCsvButton").addEventListener("click", exportFullDatasetCsv);
 
       window.addEventListener("resize", render);
       render();
