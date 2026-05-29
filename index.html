@@ -460,18 +460,24 @@
       line-height: 1.4;
     }
 
-    .source {
-      margin-top: 18px;
-      padding-top: 14px;
+    .site-footnote {
+      max-width: 1240px;
+      margin: 24px auto 0;
+      padding: 18px 28px 0;
       border-top: 1px solid var(--line);
       color: var(--muted);
-      font-size: 12px;
-      line-height: 1.55;
+      font-size: 13px;
+      line-height: 1.6;
     }
 
-    .source a {
+    .site-footnote a {
       color: var(--accent);
       font-weight: 600;
+      text-decoration: none;
+    }
+
+    .site-footnote a:hover {
+      text-decoration: underline;
     }
 
     .note {
@@ -662,12 +668,20 @@
           <button id="exportCsvButton" class="export-button" type="button">Export CSV</button>
           <span id="exportMeta" class="export-meta">Selected-year BLS data</span>
         </div>
-        <div class="source">
-          Source: U.S. Bureau of Labor Statistics MLS series for 1996-2013 and JOLTS layoffs/discharges for 2014-present.
-          Labor-market context uses BLS unemployment and payroll series. S&amp;P 500 month-end closes are derived from the open daily CSV at
-          <a href="https://github.com/vijinho/sp500">vijinho/sp500</a>. MLS and JOLTS measure different layoff concepts and should not be treated as one uninterrupted methodology.
-        </div>
       </section>
+      <footer class="site-footnote">
+        Source:
+        <a href="https://www.bls.gov/mls/">U.S. Bureau of Labor Statistics MLS series</a>
+        for 1996-2013 and
+        <a href="https://www.bls.gov/jlt/">JOLTS layoffs/discharges</a>
+        for 2014-present. Labor-market context uses
+        <a href="https://www.bls.gov/cps/">BLS unemployment</a>
+        and
+        <a href="https://www.bls.gov/ces/">payroll</a>
+        series. S&amp;P 500 month-end closes are derived from the open daily CSV at
+        <a href="https://github.com/vijinho/sp500">vijinho/sp500</a>.
+        MLS and JOLTS measure different layoff concepts and should not be treated as one uninterrupted methodology.
+      </footer>
     </main>
   </div>
 
