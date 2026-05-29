@@ -115,6 +115,27 @@
       font-weight: 700;
     }
 
+    .year-controls {
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      margin-top: 12px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .method-note {
+      margin: 0;
+      color: #5d4a20;
+      background: #fff8e8;
+      border-left: 4px solid var(--amber);
+      border-radius: 0 8px 8px 0;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
     select {
       min-height: 40px;
       min-width: 124px;
@@ -412,6 +433,10 @@
         width: 100%;
       }
 
+      .year-controls {
+        grid-template-columns: 1fr;
+      }
+
       .snapshot {
         grid-template-columns: 1fr;
       }
@@ -454,10 +479,6 @@
             <p>MLS 1996-2013, JOLTS 2014-present</p>
           </div>
         </div>
-        <label class="select-wrap">
-          Year
-          <select id="yearSelect" aria-label="Select year"></select>
-        </label>
       </div>
     </header>
 
@@ -492,6 +513,15 @@
           </div>
         </div>
         <svg id="yearlyChart" class="chart yearly" role="img" aria-label="Yearly layoff tracking chart"></svg>
+        <div class="year-controls">
+          <label class="select-wrap">
+            Year
+            <select id="yearSelect" aria-label="Select year"></select>
+          </label>
+          <p class="method-note">
+            MLS counts mass-layoff-related initial claimants for qualifying establishments and ends in 2013. JOLTS counts layoffs and discharges across the labor market from 2014 onward, so the two series are shown together for context but are not directly comparable.
+          </p>
+        </div>
       </section>
 
       <section class="dashboard-columns">
@@ -747,13 +777,26 @@
         const h = innerH * (d.total / max);
         const y = margin.top + innerH - h;
         const fill = d.source === "MLS" ? colors.claimants : colors.teal;
-        const rect = el("rect", { x, y, width: barW, height: h, rx: 3, fill, opacity: 0.88, tabindex: 0 });
+        const selected = String(d.year) === state.year;
+        const rect = el("rect", {
+          x,
+          y,
+          width: barW,
+          height: h,
+          rx: 3,
+          fill,
+          opacity: selected ? 1 : 0.82,
+          stroke: selected ? colors.text : "none",
+          "stroke-width": selected ? 2 : 0,
+          tabindex: 0
+        });
         rect.addEventListener("mousemove", (event) => showTip(event, String(d.year), [
           `${compact.format(d.total)} ${d.metricLabel.toLowerCase()}`,
           `${d.source}${d.monthCount < 12 ? `, ${d.monthCount} months` : ""}`,
           d.events == null ? "Events not available" : `${fmt.format(d.events)} events`
         ]));
         rect.addEventListener("mouseleave", hideTip);
+        rect.addEventListener("click", () => setYear(String(d.year)));
         svg.appendChild(rect);
 
         if (d.year % 5 === 0 || i === 0 || i === rows.length - 1) {
@@ -1063,6 +1106,21 @@
       renderTable();
     }
 
+    function setYear(year) {
+      state.year = year;
+      state.industryIndex = 0;
+      const yearSelect = document.getElementById("yearSelect");
+      yearSelect.value = year;
+      updateIndustryOptions();
+      render();
+    }
+
+    function updateIndustryOptions() {
+      const industrySelect = document.getElementById("industrySelect");
+      industrySelect.innerHTML = activeData().industries.map((item, index) => `<option value="${index}">${item.label}</option>`).join("");
+      industrySelect.value = String(state.industryIndex);
+    }
+
     function setup() {
       const yearSelect = document.getElementById("yearSelect");
       const years = Object.keys(DATA.years).sort();
@@ -1070,17 +1128,8 @@
       yearSelect.innerHTML = years.map((year) => `<option value="${year}">${year}</option>`).join("");
       yearSelect.value = state.year;
       yearSelect.addEventListener("change", (event) => {
-        state.year = event.target.value;
-        state.industryIndex = 0;
-        updateIndustryOptions();
-        render();
+        setYear(event.target.value);
       });
-
-      function updateIndustryOptions() {
-        const industrySelect = document.getElementById("industrySelect");
-        industrySelect.innerHTML = activeData().industries.map((item, index) => `<option value="${index}">${item.label}</option>`).join("");
-        industrySelect.value = String(state.industryIndex);
-      }
 
       const industrySelect = document.getElementById("industrySelect");
       updateIndustryOptions();
