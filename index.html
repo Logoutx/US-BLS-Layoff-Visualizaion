@@ -24,6 +24,10 @@
       box-sizing: border-box;
     }
 
+    [hidden] {
+      display: none !important;
+    }
+
     body {
       margin: 0;
       min-width: 320px;
@@ -425,6 +429,37 @@
       text-align: right;
     }
 
+    .export-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .export-button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      padding: 0 20px;
+      font-size: 14px;
+      font-weight: 650;
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(0, 113, 227, 0.22);
+    }
+
+    .export-button:hover {
+      background: #0077ed;
+    }
+
+    .export-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
     .source {
       margin-top: 18px;
       padding-top: 14px;
@@ -623,16 +658,10 @@
             <p id="dataExtractSubtitle">National all-industries monthly claimant values used in the selected year.</p>
           </div>
         </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Month</th>
-              <th>Events</th>
-              <th id="metricColumnHeader">Initial claimants</th>
-            </tr>
-          </thead>
-          <tbody id="dataTable"></tbody>
-        </table>
+        <div class="export-actions">
+          <button id="exportCsvButton" class="export-button" type="button">Export CSV</button>
+          <span id="exportMeta" class="export-meta">Selected-year BLS data</span>
+        </div>
         <div class="source">
           Source: U.S. Bureau of Labor Statistics MLS series for 1996-2013 and JOLTS layoffs/discharges for 2014-present.
           Labor-market context uses BLS unemployment and payroll series. S&amp;P 500 month-end closes are derived from the open daily CSV at
@@ -999,12 +1028,6 @@
       svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
       const rows = activeData().states.map((item) => ({ ...item, total: stateTotal(item) }));
       if (!rows.length) {
-        const message = el("text", { x: width / 2, y: height / 2 - 8, "text-anchor": "middle", fill: colors.muted, "font-size": 15, "font-weight": 760 });
-        message.textContent = "State-level data is only shown for MLS years.";
-        svg.appendChild(message);
-        const sub = el("text", { x: width / 2, y: height / 2 + 18, "text-anchor": "middle", fill: colors.muted, "font-size": 12 });
-        sub.textContent = "JOLTS years use national and industry layoffs/discharges.";
-        svg.appendChild(sub);
         return;
       }
       const max = Math.max(...rows.map((d) => d.total));
@@ -1081,15 +1104,104 @@
       `).join("");
     }
 
-    function renderTable() {
-      const body = document.getElementById("dataTable");
-      body.innerHTML = activeData().months.map((d) => `
-        <tr>
-          <td>${d.name}</td>
-          <td>${formatMaybe(d.events)}</td>
-          <td>${fmt.format(d.claimants)}</td>
-        </tr>
-      `).join("");
+    function csvEscape(value) {
+      if (value == null) return "";
+      const text = String(value);
+      return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    }
+
+    function selectedYearCsv() {
+      const data = activeData();
+      const metric = metricName(data);
+      const rows = [];
+      rows.push([
+        "year",
+        "source",
+        "month",
+        "month_number",
+        "series_type",
+        "category",
+        "events",
+        metric,
+        "unemployment_rate",
+        "unemployed_persons",
+        "nonfarm_payrolls",
+        "sp500_month_end_close",
+        "sp500_month_end_date"
+      ]);
+
+      data.months.forEach((month, index) => {
+        rows.push([
+          state.year,
+          data.source,
+          month.name,
+          index + 1,
+          "national",
+          "All industries",
+          month.events,
+          month.claimants,
+          data.context.unemploymentRate[index],
+          data.context.unemployedPersons[index] == null ? "" : Math.round(data.context.unemployedPersons[index] * 1000),
+          data.context.nonfarmPayrolls[index] == null ? "" : Math.round(data.context.nonfarmPayrolls[index] * 1000),
+          data.context.sp500MonthEnd[index]?.close,
+          data.context.sp500MonthEnd[index]?.date
+        ]);
+      });
+
+      data.industries.forEach((industry) => {
+        industry.claimants.forEach((value, index) => {
+          rows.push([
+            state.year,
+            data.source,
+            data.months[index]?.name,
+            index + 1,
+            "industry",
+            industry.label,
+            "",
+            value,
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]);
+        });
+      });
+
+      data.states.forEach((stateRow) => {
+        stateRow.claimants.forEach((value, index) => {
+          rows.push([
+            state.year,
+            data.source,
+            data.months[index]?.name,
+            index + 1,
+            "state",
+            `${stateRow.name} (${stateRow.abbr})`,
+            "",
+            value,
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]);
+        });
+      });
+
+      return rows.map((row) => row.map(csvEscape).join(",")).join("\n");
+    }
+
+    function exportSelectedYearCsv() {
+      const csv = selectedYearCsv();
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `us-bls-layoff-${state.year}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     }
 
     function updateCopy() {
@@ -1115,7 +1227,7 @@
         ? "Ranked by layoffs/discharges in industry-month JOLTS aggregates."
         : "Ranked by associated initial claimants in state-month MLS aggregates.";
       document.getElementById("dataExtractSubtitle").textContent = `National all-industries monthly ${metric.toLowerCase()} values used in the selected year.`;
-      document.getElementById("metricColumnHeader").textContent = metric;
+      document.getElementById("exportMeta").textContent = `${state.year} ${data.source} monthly CSV, including context series${data.states.length ? " and state values" : ""}.`;
       document.getElementById("claimantsTotal").textContent = compact.format(total);
       document.getElementById("peakRate").textContent = `${peakRate.toFixed(1)}%`;
       document.getElementById("avgUnemployed").textContent = compact.format(avgUnemployed * 1000);
@@ -1137,9 +1249,10 @@
       drawBars("monthlyChart", activeData().months);
       drawUnemploymentChart();
       drawLineChart();
-      drawStateMap();
+      if (activeData().states.length) {
+        drawStateMap();
+      }
       renderTopEvents();
-      renderTable();
     }
 
     function setYear(year) {
@@ -1173,6 +1286,7 @@
         state.industryIndex = Number(event.target.value);
         render();
       });
+      document.getElementById("exportCsvButton").addEventListener("click", exportSelectedYearCsv);
 
       window.addEventListener("resize", render);
       render();
