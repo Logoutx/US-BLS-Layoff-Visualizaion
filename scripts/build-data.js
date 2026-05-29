@@ -139,6 +139,10 @@ function monthRows(year, claimants, events = []) {
   }));
 }
 
+function sum(values) {
+  return values.reduce((total, value) => total + value, 0);
+}
+
 function parseCsvLine(line) {
   return line.match(/(?:"[^"]*"|[^,])+/g).map((value) => value.replace(/^"|"$/g, ""));
 }
@@ -176,6 +180,7 @@ function sp500ForYear(sp500ByMonth, year, monthCount) {
 }
 
 async function main() {
+  const currentYear = new Date().getFullYear();
   const all = new Map();
   const stateClaimantIds = Object.keys(STATE_META).map((code) => `MLUMS${code}NN0001005`);
   const mlsNationalIds = ["MLUMS00NN0001003", "MLUMS00NN0001005"];
@@ -193,11 +198,19 @@ async function main() {
     }
   }
 
-  for (const [start, end] of [[2014, 2023], [2024, 2026]]) {
+  const joltsRanges = [];
+  for (let start = 2014; start <= currentYear; start += 10) {
+    joltsRanges.push([start, Math.min(start + 9, currentYear)]);
+  }
+  for (const [start, end] of joltsRanges) {
     mergeSeries(all, await fetchBls(joltsIds, start, end));
   }
 
-  for (const [start, end] of [[1996, 2005], [2006, 2015], [2016, 2025], [2026, 2026]]) {
+  const contextRanges = [];
+  for (let start = 1996; start <= currentYear; start += 10) {
+    contextRanges.push([start, Math.min(start + 9, currentYear)]);
+  }
+  for (const [start, end] of contextRanges) {
     mergeSeries(all, await fetchBls(contextIds, start, end));
   }
 
@@ -227,7 +240,7 @@ async function main() {
     };
   }
 
-  for (let year = 2014; year <= 2026; year += 1) {
+  for (let year = 2014; year <= currentYear; year += 1) {
     const layoffs = valuesByYear(all.get("JTS000000000000000LDL"), year, 1000);
     if (!layoffs.length) continue;
     years[year] = {
@@ -259,6 +272,16 @@ async function main() {
       "JOLTS layoffs/discharges begin in this dashboard in 2014 and are not directly equivalent to MLS mass layoff events.",
       "JOLTS values are published in thousands by BLS and converted to persons here."
     ],
+    yearly: Object.entries(years).map(([year, data]) => ({
+      year: Number(year),
+      source: data.source,
+      metricLabel: data.metricLabel,
+      total: Math.round(sum(data.months.map((month) => month.claimants))),
+      events: data.months.some((month) => month.events != null)
+        ? Math.round(sum(data.months.map((month) => month.events || 0)))
+        : null,
+      monthCount: data.months.length
+    })),
     years
   };
 

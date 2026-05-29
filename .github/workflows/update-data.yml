@@ -1,0 +1,31 @@
+name: Update BLS Data
+
+on:
+  schedule:
+    - cron: "0 8 15 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Fetch latest BLS and market data
+        run: node scripts/build-data.js
+
+      - name: Commit refreshed data if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update BLS layoff data"
+          file_pattern: data.js

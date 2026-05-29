@@ -231,6 +231,10 @@
       height: 250px;
     }
 
+    .chart.yearly {
+      height: 300px;
+    }
+
     .axis-label,
     .bar-label,
     .map-label,
@@ -480,6 +484,16 @@
         </div>
       </section>
 
+      <section class="panel" style="margin-bottom: 18px;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h3>Yearly Layoff Tracking</h3>
+            <p>Annual totals from MLS through 2013 and JOLTS layoffs/discharges from 2014 onward. The 2026 value is partial.</p>
+          </div>
+        </div>
+        <svg id="yearlyChart" class="chart yearly" role="img" aria-label="Yearly layoff tracking chart"></svg>
+      </section>
+
       <section class="dashboard-columns">
         <div class="stack">
           <article class="panel">
@@ -699,6 +713,73 @@
         const label = el("text", { x: x + barW / 2, y: height - 16, "text-anchor": "middle", class: "bar-label" });
         label.textContent = d.label;
         svg.appendChild(label);
+      });
+    }
+
+    function drawYearlyChart() {
+      const svg = document.getElementById("yearlyChart");
+      clear(svg);
+      const { width, height } = chartSize(svg, 300);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      const rows = DATA.yearly || Object.entries(DATA.years).map(([year, data]) => ({
+        year: Number(year),
+        source: data.source,
+        total: sum(data.months.map((month) => month.claimants)),
+        monthCount: data.months.length
+      }));
+      const margin = { top: 26, right: 28, bottom: 48, left: 72 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const max = Math.max(...rows.map((d) => d.total)) * 1.12;
+      const gap = 3;
+      const barW = Math.max(5, (innerW - gap * (rows.length - 1)) / rows.length);
+
+      [0, 0.25, 0.5, 0.75, 1].forEach((t) => {
+        const y = margin.top + innerH - innerH * t;
+        svg.appendChild(el("line", { x1: margin.left, y1: y, x2: width - margin.right, y2: y, class: "gridline" }));
+        const text = el("text", { x: margin.left - 10, y: y + 4, "text-anchor": "end", class: "tick-label" });
+        text.textContent = compact.format(max * t);
+        svg.appendChild(text);
+      });
+
+      rows.forEach((d, i) => {
+        const x = margin.left + i * (barW + gap);
+        const h = innerH * (d.total / max);
+        const y = margin.top + innerH - h;
+        const fill = d.source === "MLS" ? colors.claimants : colors.teal;
+        const rect = el("rect", { x, y, width: barW, height: h, rx: 3, fill, opacity: 0.88, tabindex: 0 });
+        rect.addEventListener("mousemove", (event) => showTip(event, String(d.year), [
+          `${compact.format(d.total)} ${d.metricLabel.toLowerCase()}`,
+          `${d.source}${d.monthCount < 12 ? `, ${d.monthCount} months` : ""}`,
+          d.events == null ? "Events not available" : `${fmt.format(d.events)} events`
+        ]));
+        rect.addEventListener("mouseleave", hideTip);
+        svg.appendChild(rect);
+
+        if (d.year % 5 === 0 || i === 0 || i === rows.length - 1) {
+          const label = el("text", { x: x + barW / 2, y: height - 16, "text-anchor": "middle", class: "bar-label" });
+          label.textContent = d.year;
+          svg.appendChild(label);
+        }
+
+        if (d.year === 2014) {
+          const lineX = x - gap * 2;
+          svg.appendChild(el("line", { x1: lineX, y1: margin.top, x2: lineX, y2: margin.top + innerH, stroke: colors.muted, "stroke-width": 1.5, "stroke-dasharray": "5 5" }));
+          const marker = el("text", { x: lineX + 8, y: margin.top + 14, fill: colors.muted, "font-size": 12, "font-weight": 760 });
+          marker.textContent = "JOLTS begins";
+          svg.appendChild(marker);
+        }
+      });
+
+      const legend = [
+        { label: "MLS initial claimants", color: colors.claimants, x: margin.left },
+        { label: "JOLTS layoffs/discharges", color: colors.teal, x: margin.left + 174 }
+      ];
+      legend.forEach((item) => {
+        svg.appendChild(el("rect", { x: item.x, y: 8, width: 22, height: 8, rx: 3, fill: item.color }));
+        const text = el("text", { x: item.x + 30, y: 16, fill: colors.muted, "font-size": 12, "font-weight": 700 });
+        text.textContent = item.label;
+        svg.appendChild(text);
       });
     }
 
@@ -973,6 +1054,7 @@
 
     function render() {
       updateCopy();
+      drawYearlyChart();
       drawBars("monthlyChart", activeData().months);
       drawUnemploymentChart();
       drawLineChart();

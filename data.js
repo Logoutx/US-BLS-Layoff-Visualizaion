@@ -1,9 +1,259 @@
 window.DASHBOARD_DATA = {
-  "generatedAt": "2026-05-29T16:16:16.133Z",
+  "generatedAt": "2026-05-29T16:23:00.070Z",
   "notes": [
     "MLS covers establishments with at least 50 UI initial claims in a 5-week period and ends in 2013.",
     "JOLTS layoffs/discharges begin in this dashboard in 2014 and are not directly equivalent to MLS mass layoff events.",
     "JOLTS values are published in thousands by BLS and converted to persons here."
+  ],
+  "yearly": [
+    {
+      "year": 1996,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1437628,
+      "events": 14111,
+      "monthCount": 12
+    },
+    {
+      "year": 1997,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1542543,
+      "events": 14960,
+      "monthCount": 12
+    },
+    {
+      "year": 1998,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1771069,
+      "events": 15904,
+      "monthCount": 12
+    },
+    {
+      "year": 1999,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1572399,
+      "events": 14909,
+      "monthCount": 12
+    },
+    {
+      "year": 2000,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1835592,
+      "events": 15738,
+      "monthCount": 12
+    },
+    {
+      "year": 2001,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 2514862,
+      "events": 21467,
+      "monthCount": 12
+    },
+    {
+      "year": 2002,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 2245051,
+      "events": 20277,
+      "monthCount": 12
+    },
+    {
+      "year": 2003,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1888926,
+      "events": 18963,
+      "monthCount": 12
+    },
+    {
+      "year": 2004,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1607158,
+      "events": 15980,
+      "monthCount": 12
+    },
+    {
+      "year": 2005,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1795341,
+      "events": 16466,
+      "monthCount": 12
+    },
+    {
+      "year": 2006,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1484391,
+      "events": 13998,
+      "monthCount": 12
+    },
+    {
+      "year": 2007,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1598875,
+      "events": 15493,
+      "monthCount": 12
+    },
+    {
+      "year": 2008,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 2130220,
+      "events": 21137,
+      "monthCount": 12
+    },
+    {
+      "year": 2009,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 2796456,
+      "events": 28030,
+      "monthCount": 12
+    },
+    {
+      "year": 2010,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1854596,
+      "events": 19564,
+      "monthCount": 12
+    },
+    {
+      "year": 2011,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1808451,
+      "events": 18521,
+      "monthCount": 12
+    },
+    {
+      "year": 2012,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 1666931,
+      "events": 17080,
+      "monthCount": 12
+    },
+    {
+      "year": 2013,
+      "source": "MLS",
+      "metricLabel": "Initial claimants",
+      "total": 592879,
+      "events": 6177,
+      "monthCount": 5
+    },
+    {
+      "year": 2014,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 21127000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2015,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 21774000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2016,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 21225000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2017,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 21573000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2018,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 21785000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2019,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 21819000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2020,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 40955000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2021,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 17000000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2022,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 17614000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2023,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 19802000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2024,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 20116000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2025,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 21169000,
+      "events": null,
+      "monthCount": 12
+    },
+    {
+      "year": 2026,
+      "source": "JOLTS",
+      "metricLabel": "Layoffs/discharges",
+      "total": 5241000,
+      "events": null,
+      "monthCount": 3
+    }
   ],
   "years": {
     "1996": {
