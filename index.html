@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BLS Mass Layoffs Dashboard Demo</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #171f2b;
+      --muted: #657086;
+      --line: #d9e1ea;
+      --panel: #ffffff;
+      --page: #f5f6f1;
+      --teal: #0f766e;
+      --coral: #df624d;
+      --amber: #d99b28;
+      --blue: #3f6fa7;
+      --green: #5d8a66;
+      --soft: #eef2f4;
+      --shadow: 0 18px 45px rgba(31, 41, 55, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--page);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    select {
+      font: inherit;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgba(25, 32, 42, 0.12);
+      background: rgba(245, 246, 241, 0.92);
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar-inner,
+    main {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .topbar-inner {
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, var(--teal), var(--amber));
+      box-shadow: 0 8px 22px rgba(15, 118, 110, 0.18);
+    }
+
+    .brand-mark svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.15;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .select-wrap {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    select {
+      min-height: 40px;
+      min-width: 124px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 0 36px 0 12px;
+      cursor: pointer;
+    }
+
+    main {
+      padding: 28px 20px 40px;
+    }
+
+    .eyebrow {
+      margin-bottom: 12px;
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .snapshot {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .kpi,
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(25, 32, 42, 0.1);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi {
+      min-height: 118px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi strong {
+      display: block;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1;
+      font-weight: 830;
+      letter-spacing: 0;
+    }
+
+    .kpi span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .dashboard-columns {
+      display: grid;
+      grid-template-columns: minmax(0, 1.42fr) minmax(320px, 0.84fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      gap: 18px;
+      margin-top: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 18px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .panel-title h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .panel-title p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .chart {
+      width: 100%;
+      height: 320px;
+      display: block;
+    }
+
+    .chart.compact {
+      height: 270px;
+    }
+
+    .chart.map {
+      height: 250px;
+    }
+
+    .axis-label,
+    .bar-label,
+    .map-label,
+    .tick-label {
+      fill: var(--muted);
+      font-size: 12px;
+    }
+
+    .gridline {
+      stroke: var(--line);
+      stroke-width: 1;
+    }
+
+    .tooltip {
+      position: fixed;
+      pointer-events: none;
+      transform: translate(-50%, calc(-100% - 14px));
+      background: rgba(25, 32, 42, 0.96);
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.35;
+      box-shadow: 0 14px 30px rgba(25, 32, 42, 0.24);
+      opacity: 0;
+      transition: opacity 120ms ease;
+      max-width: 250px;
+      z-index: 50;
+    }
+
+    .tooltip.visible {
+      opacity: 1;
+    }
+
+    .top-list {
+      display: grid;
+      gap: 0;
+      margin-top: 4px;
+    }
+
+    .top-row {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .top-row:last-child {
+      border-bottom: 0;
+    }
+
+    .rank {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #17202c;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .top-name {
+      min-width: 0;
+    }
+
+    .top-name strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .top-name span,
+    .top-value span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .top-name span {
+      display: block;
+      margin-top: 2px;
+    }
+
+    .top-value {
+      text-align: right;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .title-select {
+      min-width: min(100%, 280px);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--ink);
+      padding-left: 10px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 13px;
+    }
+
+    .table th,
+    .table td {
+      padding: 12px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .table th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .table td:last-child,
+    .table th:last-child {
+      text-align: right;
+    }
+
+    .source {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .source a {
+      color: var(--teal);
+      font-weight: 700;
+    }
+
+    .note {
+      margin-top: 12px;
+      border-left: 4px solid var(--amber);
+      padding: 10px 12px;
+      background: #fff8e8;
+      color: #5f4b21;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 980px) {
+      .dashboard-columns,
+      .split {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .topbar-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .select-wrap,
+      select {
+        width: 100%;
+      }
+
+      .snapshot {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        padding: 14px;
+      }
+
+      .panel-header {
+        flex-direction: column;
+      }
+
+      .chart {
+        height: 315px;
+      }
+
+      .chart.compact,
+      .chart.map {
+        height: 260px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"></path>
+              <path d="m7 15 4-4 3 3 5-7"></path>
+              <path d="M7 19v-4"></path>
+              <path d="M12 19v-8"></path>
+              <path d="M17 19V7"></path>
+            </svg>
+          </div>
+          <div>
+            <h1>US BLS Layoff Visualization</h1>
+            <p>MLS 1996-2013, JOLTS 2014-present</p>
+          </div>
+        </div>
+        <label class="select-wrap">
+          Year
+          <select id="yearSelect" aria-label="Select year"></select>
+        </label>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="eyebrow" id="yearEyebrow">United States - 2001</div>
+        <div class="snapshot">
+          <div class="kpi">
+            <span id="totalMetricLabel">Total initial claimants</span>
+            <strong id="claimantsTotal">0</strong>
+          </div>
+          <div class="kpi">
+            <span>Peak unemployment rate</span>
+            <strong id="peakRate">-</strong>
+          </div>
+          <div class="kpi">
+            <span>Average unemployed persons</span>
+            <strong id="avgUnemployed">-</strong>
+          </div>
+          <div class="kpi">
+            <span>Total nonfarm payroll change</span>
+            <strong id="payrollChange">-</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-columns">
+        <div class="stack">
+          <article class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h3 id="monthlyTitle">Monthly Claimants</h3>
+                <p id="monthlySubtitle">National all-industries MLS claimant series, monthly observations.</p>
+              </div>
+            </div>
+            <svg id="monthlyChart" class="chart" role="img" aria-label="Monthly initial claimants chart"></svg>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h3>Monthly Unemployment Rate + S&amp;P 500</h3>
+                <p>BLS national unemployment rate and S&amp;P 500 month-end close.</p>
+              </div>
+            </div>
+            <svg id="unemploymentChart" class="chart compact" role="img" aria-label="Monthly unemployment rate and S&P 500 chart"></svg>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <select id="industrySelect" class="title-select" aria-label="Select industry"></select>
+                <p id="industrySubtitle">Monthly claimant trend for the selected national industry series.</p>
+              </div>
+            </div>
+            <svg id="industryLine" class="chart compact" role="img" aria-label="Industry monthly claimant line chart"></svg>
+          </article>
+        </div>
+
+        <div class="stack">
+          <aside class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h3>Top 10 Month Mass Layoffs</h3>
+                <p id="topListSubtitle">Ranked by associated initial claimants in state-month MLS aggregates.</p>
+              </div>
+            </div>
+            <div id="topEvents" class="top-list"></div>
+          </aside>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <h3 id="stateTitle">Highest State</h3>
+                <p id="stateSubtitle">Annual initial claimants by state, shown as a U.S. tile map.</p>
+              </div>
+            </div>
+            <svg id="stateMap" class="chart map" role="img" aria-label="State map of initial claimants"></svg>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top: 18px;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h3>Data Extract</h3>
+            <p id="dataExtractSubtitle">National all-industries monthly claimant values used in the selected year.</p>
+          </div>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Events</th>
+              <th id="metricColumnHeader">Initial claimants</th>
+            </tr>
+          </thead>
+          <tbody id="dataTable"></tbody>
+        </table>
+        <div class="source">
+          Source: U.S. Bureau of Labor Statistics MLS series for 1996-2013 and JOLTS layoffs/discharges for 2014-present.
+          Labor-market context uses BLS unemployment and payroll series. S&amp;P 500 month-end closes are derived from the open daily CSV at
+          <a href="https://github.com/vijinho/sp500">vijinho/sp500</a>. MLS and JOLTS measure different layoff concepts and should not be treated as one uninterrupted methodology.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="tooltip" class="tooltip" role="status" aria-live="polite"></div>
+
+  <script src="data.js"></script>
+  <script>
+    const DATA = window.DASHBOARD_DATA;
+    const state = {
+      year: null,
+      industryIndex: 0
+    };
+
+    const colors = {
+      claimants: "#df624d",
+      grid: "#d9e1ea",
+      text: "#171f2b",
+      muted: "#657086",
+      teal: "#0f766e",
+      amber: "#d99b28",
+      blue: "#3f6fa7",
+      green: "#5d8a66"
+    };
+
+    const fmt = new Intl.NumberFormat("en-US");
+    const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
+    const tooltip = document.getElementById("tooltip");
+
+    function activeData() {
+      return DATA.years[state.year];
+    }
+
+    function sum(values) {
+      return values.reduce((total, value) => total + value, 0);
+    }
+
+    function stateTotal(row) {
+      return sum(row.claimants);
+    }
+
+    function isJoltsYear(data = activeData()) {
+      return data.source === "JOLTS";
+    }
+
+    function metricName(data = activeData()) {
+      return data.metricLabel || (isJoltsYear(data) ? "Layoffs/discharges" : "Initial claimants");
+    }
+
+    function formatMaybe(value) {
+      return value == null ? "-" : fmt.format(value);
+    }
+
+    function clear(svg) {
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+    }
+
+    function el(name, attrs = {}) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (const [key, value] of Object.entries(attrs)) {
+        node.setAttribute(key, value);
+      }
+      return node;
+    }
+
+    function showTip(event, title, lines) {
+      tooltip.innerHTML = `<strong>${title}</strong><br>${lines.join("<br>")}`;
+      tooltip.style.left = `${event.clientX}px`;
+      tooltip.style.top = `${event.clientY}px`;
+      tooltip.classList.add("visible");
+    }
+
+    function hideTip() {
+      tooltip.classList.remove("visible");
+    }
+
+    function chartSize(svg, fallbackHeight) {
+      const box = svg.getBoundingClientRect();
+      return {
+        width: Math.max(320, box.width || 640),
+        height: Math.max(240, box.height || fallbackHeight)
+      };
+    }
+
+    function hexToRgb(hex) {
+      const value = hex.replace("#", "");
+      return [
+        parseInt(value.slice(0, 2), 16),
+        parseInt(value.slice(2, 4), 16),
+        parseInt(value.slice(4, 6), 16)
+      ];
+    }
+
+    function colorMix(a, b, t) {
+      const aa = hexToRgb(a);
+      const bb = hexToRgb(b);
+      const mixed = aa.map((value, i) => Math.round(value + (bb[i] - value) * t));
+      return `rgb(${mixed[0]}, ${mixed[1]}, ${mixed[2]})`;
+    }
+
+    function drawBars(svgId, rows, options = {}) {
+      const svg = document.getElementById(svgId);
+      clear(svg);
+      const { width, height } = chartSize(svg, options.height || 360);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      const margin = { top: 24, right: 22, bottom: 42, left: 64 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const max = Math.max(...rows.map((d) => d.claimants)) * 1.18;
+      const barGap = 10;
+      const barW = Math.max(12, (innerW - barGap * (rows.length - 1)) / rows.length);
+
+      [0, 0.25, 0.5, 0.75, 1].forEach((t) => {
+        const y = margin.top + innerH - innerH * t;
+        svg.appendChild(el("line", { x1: margin.left, y1: y, x2: width - margin.right, y2: y, class: "gridline" }));
+        const text = el("text", { x: margin.left - 10, y: y + 4, "text-anchor": "end", class: "tick-label" });
+        text.textContent = compact.format(max * t);
+        svg.appendChild(text);
+      });
+
+      rows.forEach((d, i) => {
+        const x = margin.left + i * (barW + barGap);
+        const h = innerH * (d.claimants / max);
+        const y = margin.top + innerH - h;
+        const rect = el("rect", {
+          x,
+          y,
+          width: barW,
+          height: h,
+          rx: 5,
+          fill: colors.claimants,
+          opacity: 0.9,
+          tabindex: 0
+        });
+        rect.addEventListener("mousemove", (event) => showTip(event, d.name, [`${fmt.format(d.claimants)} ${metricName().toLowerCase()}`]));
+        rect.addEventListener("mouseleave", hideTip);
+        svg.appendChild(rect);
+
+        const label = el("text", { x: x + barW / 2, y: height - 16, "text-anchor": "middle", class: "bar-label" });
+        label.textContent = d.label;
+        svg.appendChild(label);
+      });
+    }
+
+    function drawUnemploymentChart() {
+      const svg = document.getElementById("unemploymentChart");
+      clear(svg);
+      const { width, height } = chartSize(svg, 310);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      const data = activeData();
+      const rows = data.months.map((month, i) => ({
+        ...month,
+        rate: data.context.unemploymentRate[i],
+        sp500: data.context.sp500MonthEnd[i]?.close,
+        sp500Date: data.context.sp500MonthEnd[i]?.date
+      }));
+      const margin = { top: 34, right: 74, bottom: 42, left: 58 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const rateMin = Math.max(0, Math.min(...rows.map((d) => d.rate)) - 0.6);
+      const rateMax = Math.max(...rows.map((d) => d.rate)) + 0.6;
+      const spValues = rows.map((d) => d.sp500).filter((value) => Number.isFinite(value));
+      const spMin = Math.min(...spValues) * 0.96;
+      const spMax = Math.max(...spValues) * 1.04;
+      const step = innerW / (rows.length - 1);
+
+      [0, 0.25, 0.5, 0.75, 1].forEach((t) => {
+        const rate = rateMin + (rateMax - rateMin) * t;
+        const sp = spMin + (spMax - spMin) * t;
+        const y = margin.top + innerH - innerH * t;
+        svg.appendChild(el("line", { x1: margin.left, y1: y, x2: width - margin.right, y2: y, class: "gridline" }));
+        const left = el("text", { x: margin.left - 10, y: y + 4, "text-anchor": "end", class: "tick-label" });
+        left.textContent = `${rate.toFixed(1)}%`;
+        svg.appendChild(left);
+        const right = el("text", { x: width - margin.right + 10, y: y + 4, class: "tick-label" });
+        right.textContent = Number.isFinite(sp) ? fmt.format(Math.round(sp)) : "-";
+        svg.appendChild(right);
+      });
+
+      const ratePoints = rows.map((d, i) => {
+        const x = margin.left + i * step;
+        const y = margin.top + innerH - innerH * ((d.rate - rateMin) / (rateMax - rateMin));
+        return { ...d, x, y };
+      });
+      const spPoints = rows.map((d, i) => {
+        const x = margin.left + i * step;
+        const y = margin.top + innerH - innerH * ((d.sp500 - spMin) / (spMax - spMin));
+        return { ...d, x, y };
+      }).filter((d) => Number.isFinite(d.sp500));
+
+      const ratePath = ratePoints.map((p, i) => `${i ? "L" : "M"}${p.x},${p.y}`).join(" ");
+      const spPath = spPoints.map((p, i) => `${i ? "L" : "M"}${p.x},${p.y}`).join(" ");
+      svg.appendChild(el("path", { d: ratePath, fill: "none", stroke: colors.blue, "stroke-width": 4, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+      svg.appendChild(el("path", { d: spPath, fill: "none", stroke: colors.teal, "stroke-width": 4, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+
+      ratePoints.forEach((p) => {
+        const hit = el("circle", { cx: p.x, cy: p.y, r: 7, fill: colors.blue, stroke: "#fff", "stroke-width": 2, tabindex: 0 });
+        hit.addEventListener("mousemove", (event) => showTip(event, p.name, [
+          `${p.rate.toFixed(1)}% unemployment rate`,
+          p.sp500 == null ? "S&P 500: unavailable" : `S&P 500: ${fmt.format(p.sp500)} on ${p.sp500Date}`
+        ]));
+        hit.addEventListener("mouseleave", hideTip);
+        svg.appendChild(hit);
+
+        const label = el("text", { x: p.x, y: height - 16, "text-anchor": "middle", class: "bar-label" });
+        label.textContent = p.label;
+        svg.appendChild(label);
+      });
+
+      spPoints.forEach((p) => {
+        const hit = el("circle", { cx: p.x, cy: p.y, r: 5, fill: colors.teal, stroke: "#fff", "stroke-width": 2, tabindex: 0 });
+        hit.addEventListener("mousemove", (event) => showTip(event, p.name, [
+          `S&P 500: ${fmt.format(p.sp500)} on ${p.sp500Date}`,
+          `${p.rate.toFixed(1)}% unemployment rate`
+        ]));
+        hit.addEventListener("mouseleave", hideTip);
+        svg.appendChild(hit);
+      });
+
+      const legend = [
+        { label: "Unemployment rate", color: colors.blue, x: margin.left },
+        { label: "S&P 500", color: colors.teal, x: margin.left + 164 }
+      ];
+      legend.forEach((item) => {
+        svg.appendChild(el("line", { x1: item.x, y1: 14, x2: item.x + 28, y2: 14, stroke: item.color, "stroke-width": 4, "stroke-linecap": "round" }));
+        const text = el("text", { x: item.x + 36, y: 18, fill: colors.muted, "font-size": 12, "font-weight": 700 });
+        text.textContent = item.label;
+        svg.appendChild(text);
+      });
+    }
+
+    function drawLineChart() {
+      const svg = document.getElementById("industryLine");
+      clear(svg);
+      const { width, height } = chartSize(svg, 310);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      const data = activeData();
+      const industry = data.industries[state.industryIndex];
+      const rows = data.months.map((month, i) => ({ ...month, claimants: industry.claimants[i] }));
+      const margin = { top: 24, right: 24, bottom: 42, left: 64 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const max = Math.max(...rows.map((d) => d.claimants)) * 1.18;
+      const step = innerW / (rows.length - 1);
+
+      [0, 0.25, 0.5, 0.75, 1].forEach((t) => {
+        const y = margin.top + innerH - innerH * t;
+        svg.appendChild(el("line", { x1: margin.left, y1: y, x2: width - margin.right, y2: y, class: "gridline" }));
+        const text = el("text", { x: margin.left - 10, y: y + 4, "text-anchor": "end", class: "tick-label" });
+        text.textContent = compact.format(max * t);
+        svg.appendChild(text);
+      });
+
+      const points = rows.map((d, i) => {
+        const x = margin.left + i * step;
+        const y = margin.top + innerH - innerH * (d.claimants / max);
+        return { ...d, x, y };
+      });
+
+      const path = points.map((p, i) => `${i ? "L" : "M"}${p.x},${p.y}`).join(" ");
+      svg.appendChild(el("path", { d: path, fill: "none", stroke: colors.teal, "stroke-width": 4, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+
+      points.forEach((p) => {
+        const hit = el("circle", { cx: p.x, cy: p.y, r: 7, fill: colors.claimants, stroke: "#fff", "stroke-width": 2, tabindex: 0 });
+        hit.addEventListener("mousemove", (event) => showTip(event, `${industry.label} - ${p.name}`, [`${fmt.format(p.claimants)} ${metricName().toLowerCase()}`]));
+        hit.addEventListener("mouseleave", hideTip);
+        svg.appendChild(hit);
+
+        const label = el("text", { x: p.x, y: height - 16, "text-anchor": "middle", class: "bar-label" });
+        label.textContent = p.label;
+        svg.appendChild(label);
+      });
+    }
+
+    function drawStateMap() {
+      const svg = document.getElementById("stateMap");
+      clear(svg);
+      const { width, height } = chartSize(svg, 310);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      const rows = activeData().states.map((item) => ({ ...item, total: stateTotal(item) }));
+      if (!rows.length) {
+        const message = el("text", { x: width / 2, y: height / 2 - 8, "text-anchor": "middle", fill: colors.muted, "font-size": 15, "font-weight": 760 });
+        message.textContent = "State-level data is only shown for MLS years.";
+        svg.appendChild(message);
+        const sub = el("text", { x: width / 2, y: height / 2 + 18, "text-anchor": "middle", fill: colors.muted, "font-size": 12 });
+        sub.textContent = "JOLTS years use national and industry layoffs/discharges.";
+        svg.appendChild(sub);
+        return;
+      }
+      const max = Math.max(...rows.map((d) => d.total));
+      const min = Math.min(...rows.map((d) => d.total));
+      const tile = Math.min((width - 40) / 12, (height - 46) / 8);
+      const startX = (width - tile * 12) / 2;
+      const startY = 4;
+
+      rows.forEach((d) => {
+        const t = max === min ? 0.5 : Math.pow((d.total - min) / (max - min), 0.55);
+        const x = startX + d.x * tile;
+        const y = startY + d.y * tile;
+        const fill = colorMix("#f2e9dc", colors.claimants, t);
+        const rect = el("rect", {
+          x: x + 3,
+          y: y + 3,
+          width: tile - 6,
+          height: tile - 6,
+          rx: 7,
+          fill,
+          stroke: "#ffffff",
+          "stroke-width": 2,
+          tabindex: 0
+        });
+        rect.addEventListener("mousemove", (event) => showTip(event, d.name, [`${fmt.format(d.total)} initial claimants`]));
+        rect.addEventListener("mouseleave", hideTip);
+        svg.appendChild(rect);
+
+        const text = el("text", {
+          x: x + tile / 2,
+          y: y + tile / 2 + 4,
+          "text-anchor": "middle",
+          fill: t > 0.62 ? "#fff" : colors.text,
+          "font-size": Math.max(10, tile * 0.24),
+          "font-weight": 800
+        });
+        text.textContent = d.abbr;
+        svg.appendChild(text);
+      });
+
+      const legendY = height - 18;
+      [0, 1, 2, 3, 4].forEach((i) => {
+        svg.appendChild(el("rect", { x: width - 180 + i * 24, y: legendY - 12, width: 24, height: 8, fill: colorMix("#f2e9dc", colors.claimants, i / 4) }));
+      });
+      const low = el("text", { x: width - 182, y: legendY + 10, class: "map-label" });
+      low.textContent = "lower";
+      svg.appendChild(low);
+      const high = el("text", { x: width - 58, y: legendY + 10, class: "map-label" });
+      high.textContent = "higher";
+      svg.appendChild(high);
+    }
+
+    function renderTopEvents() {
+      const data = activeData();
+      const sourceRows = data.states.length ? data.states : data.industries;
+      const rows = sourceRows.flatMap((item) => item.claimants.map((value, monthIndex) => ({
+        label: item.name || item.label,
+        month: data.months[monthIndex]?.name || "",
+        value
+      }))).filter((row) => row.value != null).sort((a, b) => b.value - a.value).slice(0, 10);
+
+      document.getElementById("topEvents").innerHTML = rows.map((row, i) => `
+        <div class="top-row">
+          <div class="rank">${i + 1}</div>
+          <div class="top-name">
+            <strong>${row.label}</strong>
+            <span>${row.month} ${state.year}</span>
+          </div>
+          <div class="top-value">
+            ${compact.format(row.value)}
+            <span>${isJoltsYear(data) ? "layoffs" : "claimants"}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderTable() {
+      const body = document.getElementById("dataTable");
+      body.innerHTML = activeData().months.map((d) => `
+        <tr>
+          <td>${d.name}</td>
+          <td>${formatMaybe(d.events)}</td>
+          <td>${fmt.format(d.claimants)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function updateCopy() {
+      const data = activeData();
+      const total = sum(data.months.map((d) => d.claimants));
+      const rates = data.context.unemploymentRate;
+      const unemployed = data.context.unemployedPersons;
+      const payrolls = data.context.nonfarmPayrolls;
+      const peakRate = Math.max(...rates);
+      const avgUnemployed = sum(unemployed) / unemployed.length;
+      const payrollChange = payrolls[payrolls.length - 1] - payrolls[0];
+      const sign = payrollChange > 0 ? "+" : "";
+
+      const metric = metricName(data);
+      document.getElementById("yearEyebrow").textContent = `United States - ${state.year} - ${data.source}`;
+      document.getElementById("totalMetricLabel").textContent = `Total ${metric.toLowerCase()}`;
+      document.getElementById("monthlyTitle").textContent = isJoltsYear(data) ? "Monthly Layoffs/Discharges" : "Monthly Claimants";
+      document.getElementById("monthlySubtitle").textContent = isJoltsYear(data)
+        ? "BLS JOLTS national layoffs and discharges, monthly observations."
+        : "National all-industries MLS claimant series, monthly observations.";
+      document.getElementById("industrySubtitle").textContent = `Monthly ${metric.toLowerCase()} trend for the selected national industry series.`;
+      document.getElementById("topListSubtitle").textContent = isJoltsYear(data)
+        ? "Ranked by layoffs/discharges in industry-month JOLTS aggregates."
+        : "Ranked by associated initial claimants in state-month MLS aggregates.";
+      document.getElementById("dataExtractSubtitle").textContent = `National all-industries monthly ${metric.toLowerCase()} values used in the selected year.`;
+      document.getElementById("metricColumnHeader").textContent = metric;
+      document.getElementById("claimantsTotal").textContent = compact.format(total);
+      document.getElementById("peakRate").textContent = `${peakRate.toFixed(1)}%`;
+      document.getElementById("avgUnemployed").textContent = compact.format(avgUnemployed * 1000);
+      document.getElementById("payrollChange").textContent = `${sign}${compact.format(payrollChange * 1000)}`;
+      if (data.states.length) {
+        const peakState = data.states.reduce((best, item) => stateTotal(item) > stateTotal(best) ? item : best, data.states[0]);
+        const peakStateTotal = stateTotal(peakState);
+        document.getElementById("stateTitle").textContent = `Highest State - ${peakState.abbr} - ${fmt.format(peakStateTotal)}`;
+        document.getElementById("stateSubtitle").textContent = "Annual initial claimants by state, shown as a U.S. tile map.";
+      } else {
+        document.getElementById("stateTitle").textContent = "State Map - MLS Years Only";
+        document.getElementById("stateSubtitle").textContent = "JOLTS does not replace the MLS state-level mass-layoff series in this view.";
+      }
+    }
+
+    function render() {
+      updateCopy();
+      drawBars("monthlyChart", activeData().months);
+      drawUnemploymentChart();
+      drawLineChart();
+      drawStateMap();
+      renderTopEvents();
+      renderTable();
+    }
+
+    function setup() {
+      const yearSelect = document.getElementById("yearSelect");
+      const years = Object.keys(DATA.years).sort();
+      state.year = years[years.length - 1];
+      yearSelect.innerHTML = years.map((year) => `<option value="${year}">${year}</option>`).join("");
+      yearSelect.value = state.year;
+      yearSelect.addEventListener("change", (event) => {
+        state.year = event.target.value;
+        state.industryIndex = 0;
+        updateIndustryOptions();
+        render();
+      });
+
+      function updateIndustryOptions() {
+        const industrySelect = document.getElementById("industrySelect");
+        industrySelect.innerHTML = activeData().industries.map((item, index) => `<option value="${index}">${item.label}</option>`).join("");
+        industrySelect.value = String(state.industryIndex);
+      }
+
+      const industrySelect = document.getElementById("industrySelect");
+      updateIndustryOptions();
+      industrySelect.addEventListener("change", (event) => {
+        state.industryIndex = Number(event.target.value);
+        render();
+      });
+
+      window.addEventListener("resize", render);
+      render();
+    }
+
+    setup();
+  </script>
+</body>
+</html>
