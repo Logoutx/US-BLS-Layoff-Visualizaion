@@ -117,12 +117,37 @@
 
     .year-controls {
       display: grid;
-      grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+      grid-template-columns: minmax(250px, 380px) minmax(0, 1fr);
       gap: 14px;
       align-items: center;
       margin-top: 12px;
       padding-top: 14px;
       border-top: 1px solid var(--line);
+    }
+
+    .year-title-wrap {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .year-title {
+      min-height: 58px;
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 0 46px 0 16px;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1;
+      font-weight: 840;
+      letter-spacing: 0;
+      cursor: pointer;
     }
 
     .method-note {
@@ -158,6 +183,10 @@
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.06em;
+    }
+
+    .year-detail {
+      margin: 18px 0 0;
     }
 
     .snapshot {
@@ -483,7 +512,26 @@
     </header>
 
     <main>
-      <section>
+      <section class="panel" style="margin-bottom: 18px;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h3>Yearly Layoff Tracking</h3>
+            <p>Annual totals from MLS through 2013 and JOLTS layoffs/discharges from 2014 onward. The 2026 value is partial.</p>
+          </div>
+        </div>
+        <svg id="yearlyChart" class="chart yearly" role="img" aria-label="Yearly layoff tracking chart"></svg>
+        <div class="year-controls">
+          <label class="year-title-wrap">
+            Selected year
+            <select id="yearSelect" class="year-title" aria-label="Select year"></select>
+          </label>
+          <p class="method-note">
+            MLS counts mass-layoff-related initial claimants for qualifying establishments and ends in 2013. JOLTS counts layoffs and discharges across the labor market from 2014 onward, so the two series are shown together for context but are not directly comparable.
+          </p>
+        </div>
+      </section>
+
+      <section class="year-detail">
         <div class="eyebrow" id="yearEyebrow">United States - 2001</div>
         <div class="snapshot">
           <div class="kpi">
@@ -502,25 +550,6 @@
             <span>Total nonfarm payroll change</span>
             <strong id="payrollChange">-</strong>
           </div>
-        </div>
-      </section>
-
-      <section class="panel" style="margin-bottom: 18px;">
-        <div class="panel-header">
-          <div class="panel-title">
-            <h3>Yearly Layoff Tracking</h3>
-            <p>Annual totals from MLS through 2013 and JOLTS layoffs/discharges from 2014 onward. The 2026 value is partial.</p>
-          </div>
-        </div>
-        <svg id="yearlyChart" class="chart yearly" role="img" aria-label="Yearly layoff tracking chart"></svg>
-        <div class="year-controls">
-          <label class="select-wrap">
-            Year
-            <select id="yearSelect" aria-label="Select year"></select>
-          </label>
-          <p class="method-note">
-            MLS counts mass-layoff-related initial claimants for qualifying establishments and ends in 2013. JOLTS counts layoffs and discharges across the labor market from 2014 onward, so the two series are shown together for context but are not directly comparable.
-          </p>
         </div>
       </section>
 
